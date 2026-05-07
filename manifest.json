@@ -1,0 +1,45 @@
+{
+  "subjects": [
+    {
+      "id": "IEFT",
+      "label": "IEFT",
+      "modules": [
+        {
+          "id": "Module_1_Notes",
+          "title": "Introduction & Demand/Supply Analysis",
+          "order": 1,
+          "path": "notes/IEFT/Module_1_Notes.md",
+          "tags": []
+        },
+        {
+          "id": "Module_2_Notes",
+          "title": "Production & Cost Analysis",
+          "order": 2,
+          "path": "notes/IEFT/Module_2_Notes.md",
+          "tags": []
+        },
+        {
+          "id": "Module_3_Notes",
+          "title": "Market Structure & Pricing",
+          "order": 3,
+          "path": "notes/IEFT/Module_3_Notes.md",
+          "tags": []
+        },
+        {
+          "id": "Module_4_Notes",
+          "title": "National Income & Macroeconomics",
+          "order": 4,
+          "path": "notes/IEFT/Module_4_Notes.md",
+          "tags": []
+        },
+        {
+          "id": "Module_5_Notes",
+          "title": "International Trade & Foreign Economics",
+          "order": 5,
+          "path": "notes/IEFT/Module_5_Notes.md",
+          "tags": []
+        }
+      ]
+    }
+  ]
+}
