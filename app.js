@@ -228,31 +228,119 @@ function renderGraphs() {
     const codeBlocks = renderArea.querySelectorAll('pre code.language-text');
     codeBlocks.forEach(block => {
         const content = block.textContent;
-        // Simple heuristic for an ASCII graph: contains axes characters
         if (content.includes('^') && content.includes('|')) {
-            const pre = block.parentElement;
-            
-            const container = document.createElement('figure');
-            container.className = 'faithful-graph-container';
-            
-            const caption = document.createElement('figcaption');
-            caption.className = 'faithful-graph-caption';
-            caption.innerHTML = '<span class="blueprint-label">FIG.</span> Faithful ASCII Reproduction';
-            
-            // Apply syntax highlighting to specific labels within the ASCII text
-            let styledContent = content
-                .replace(/\b(S|D)\b(?![\w-])/g, '<span style="color: var(--accent-blue); font-weight: bold;">$1</span>')
-                .replace(/\b(MC|AC|MR|AR)\b/g, '<span style="color: var(--accent-amber); font-weight: bold;">$1</span>')
-                .replace(/\b(Price|Qty|Output)\b/g, '<span style="color: var(--text-primary); font-weight: bold;">$1</span>');
-                
-            block.innerHTML = styledContent;
-            pre.className = 'faithful-graph-pre';
-            
-            pre.parentNode.insertBefore(container, pre);
-            container.appendChild(caption);
-            container.appendChild(pre);
+            const archetype = detectArchetype(content);
+            if (archetype) {
+                const svg = generateSVG(archetype);
+                block.parentElement.replaceWith(svg);
+            }
         }
     });
+}
+
+function detectArchetype(text) {
+    const lower = text.toLowerCase();
+    if (lower.includes('kink')) return 'kinked-demand';
+    if (lower.includes('market') && lower.includes('firm')) return 'perfect-competition';
+    if (lower.includes('mc') && lower.includes('ar')) return 'monopoly';
+    if (lower.includes('s') && lower.includes('d')) return 'supply-demand';
+    return null;
+}
+
+function generateSVG(type) {
+    const container = document.createElement('figure');
+    container.className = 'graph-container';
+    
+    // Theme-aware colors
+    const colors = {
+        axis: 'var(--text-muted)',
+        grid: 'var(--border)',
+        demand: 'var(--accent-red)',
+        supply: 'var(--accent-blue)',
+        mc: 'var(--accent-green)',
+        ac: 'var(--accent-amber)',
+        mr: 'var(--accent-purple)',
+        text: 'var(--text-secondary)',
+        bg: 'var(--bg-elevated)'
+    };
+
+    let svgContent = '';
+    let caption = '';
+
+    const axisBase = `<path d="M40,20 L40,120 L180,120" fill="none" stroke="${colors.axis}" stroke-width="1.5" stroke-linecap="square"/>
+                      <text x="185" y="125" font-family="var(--font-mono)" font-size="10" fill="${colors.text}">Q</text>
+                      <text x="25" y="25" font-family="var(--font-mono)" font-size="10" fill="${colors.text}">P</text>`;
+
+    if (type === 'supply-demand') {
+        svgContent = `
+            ${axisBase}
+            <path d="M50,110 L170,30" stroke="${colors.supply}" stroke-width="2" fill="none" stroke-linecap="round"/> <!-- S -->
+            <path d="M50,30 L170,110" stroke="${colors.demand}" stroke-width="2" fill="none" stroke-linecap="round"/> <!-- D -->
+            <circle cx="110" cy="70" r="3" fill="${colors.text}"/>
+            <text x="175" y="35" font-family="var(--font-mono)" font-size="10" font-weight="bold" fill="${colors.demand}">D</text>
+            <text x="175" y="115" font-family="var(--font-mono)" font-size="10" font-weight="bold" fill="${colors.supply}">S</text>
+            <path d="M40,70 L110,70 L110,120" stroke="${colors.axis}" stroke-width="1" stroke-dasharray="4" fill="none"/>
+            <text x="115" y="65" font-family="var(--font-mono)" font-size="9" fill="${colors.text}">E</text>
+        `;
+        caption = 'Market Equilibrium: Supply and Demand';
+    } else if (type === 'monopoly') {
+        svgContent = `
+            ${axisBase}
+            <path d="M50,30 L170,100" stroke="${colors.demand}" stroke-width="2" fill="none" stroke-linecap="round"/> <!-- AR -->
+            <path d="M50,30 L110,120" stroke="${colors.mr}" stroke-width="2" fill="none" stroke-linecap="round"/> <!-- MR -->
+            <path d="M50,100 Q110,20 170,100" stroke="${colors.ac}" stroke-width="2" fill="none" stroke-linecap="round"/> <!-- AC -->
+            <path d="M40,110 Q110,110 170,20" stroke="${colors.mc}" stroke-width="2" fill="none" stroke-linecap="round"/> <!-- MC -->
+            <text x="175" y="105" font-family="var(--font-mono)" font-size="9" fill="${colors.demand}">AR (D)</text>
+            <text x="115" y="115" font-family="var(--font-mono)" font-size="9" fill="${colors.mr}">MR</text>
+            <text x="175" y="25" font-family="var(--font-mono)" font-size="9" fill="${colors.mc}">MC</text>
+        `;
+        caption = 'Monopoly: Equilibrium with MC, AC, MR, AR';
+    } else if (type === 'perfect-competition') {
+        svgContent = `
+            <!-- Market Side -->
+            <g transform="translate(0,0) scale(0.9)">
+                <path d="M30,20 L30,120 L100,120" fill="none" stroke="${colors.axis}" stroke-width="1.5"/>
+                <path d="M40,40 L90,110" stroke="${colors.supply}" stroke-width="1.5" fill="none"/>
+                <path d="M40,110 L90,40" stroke="${colors.demand}" stroke-width="1.5" fill="none"/>
+                <text x="50" y="15" font-family="var(--font-mono)" font-size="8" fill="${colors.text}" font-weight="bold">MARKET</text>
+            </g>
+            <!-- Firm Side -->
+            <g transform="translate(100,0) scale(0.9)">
+                <path d="M30,20 L30,120 L100,120" fill="none" stroke="${colors.axis}" stroke-width="1.5"/>
+                <path d="M30,75 L100,75" stroke="${colors.demand}" stroke-width="2" fill="none"/> <!-- Price -->
+                <path d="M40,100 Q65,40 95,100" stroke="${colors.ac}" stroke-width="1.5" fill="none"/>
+                <path d="M30,110 Q65,110 95,30" stroke="${colors.mc}" stroke-width="1.5" fill="none"/>
+                <text x="50" y="15" font-family="var(--font-mono)" font-size="8" fill="${colors.text}" font-weight="bold">FIRM</text>
+                <text x="75" y="70" font-family="var(--font-mono)" font-size="7" fill="${colors.demand}">P=AR=MR</text>
+            </g>
+            <path d="M85,67 L130,67" stroke="${colors.axis}" stroke-width="1" stroke-dasharray="2" fill="none"/>
+        `;
+        caption = 'Perfect Competition: Market vs Individual Firm (Price Taker)';
+    } else if (type === 'kinked-demand') {
+        svgContent = `
+            ${axisBase}
+            <path d="M50,40 L110,70" stroke="${colors.demand}" stroke-width="2.5" fill="none" stroke-linecap="round"/> <!-- Elastic part -->
+            <path d="M110,70 L160,120" stroke="${colors.demand}" stroke-width="2.5" fill="none" stroke-linecap="round"/> <!-- Inelastic part -->
+            <circle cx="110" cy="70" r="3" fill="${colors.accent_red}"/>
+            <path d="M40,70 L110,70 L110,120" stroke="${colors.axis}" stroke-width="1" stroke-dasharray="4" fill="none"/>
+            <text x="55" y="35" font-family="var(--font-mono)" font-size="8" fill="${colors.text}">Elastic</text>
+            <text x="135" y="105" font-family="var(--font-mono)" font-size="8" fill="${colors.text}">Inelastic</text>
+            <text x="115" y="65" font-family="var(--font-mono)" font-size="9" fill="${colors.text}" font-weight="bold">KINK (P*)</text>
+        `;
+        caption = 'Oligopoly: Sweezy\'s Kinked Demand Curve';
+    }
+
+    container.innerHTML = `
+        <div style="background: ${colors.bg}; padding: 20px; border: 1px solid var(--border); margin: 2rem 0;">
+            <svg viewBox="0 0 200 150" style="width: 100%; height: auto; display: block; overflow: visible;">
+                ${svgContent}
+            </svg>
+        </div>
+        <figcaption style="text-align: center; font-family: var(--font-body); font-style: italic; font-size: 0.85rem; color: var(--text-secondary); margin-top: -1.5rem; margin-bottom: 2rem;">
+            <span style="color: var(--accent-amber); font-weight: bold; font-family: var(--font-mono); font-size: 0.7rem; text-transform: uppercase; margin-right: 0.5rem;">[Figure]</span> ${caption}
+        </figcaption>`;
+    
+    return container;
 }
 
 // Search & Indexing
