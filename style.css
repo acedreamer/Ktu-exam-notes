@@ -318,6 +318,35 @@ code { background: var(--bg-elevated); padding: 0.2em 0.4em; }
     margin-bottom: 0;
 }
 
+/* Faithful ASCII Graphs */
+.faithful-graph-container {
+    margin: 3rem 0;
+    border: 1px solid var(--border);
+    background: var(--bg-surface);
+}
+.faithful-graph-caption {
+    padding: 0.8rem 1rem;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg-elevated);
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+.blueprint-label {
+    color: var(--accent-amber);
+    font-weight: 700;
+}
+.faithful-graph-pre {
+    margin: 0 !important;
+    padding: 1.5rem !important;
+    border: none !important;
+    background: transparent !important;
+    line-height: 1.3;
+    overflow-x: auto;
+}
+
 /* Tables */
 table { width: 100%; border-collapse: collapse; margin: 2.5rem 0; font-size: var(--text-sm); font-family: var(--font-body); }
 th { 

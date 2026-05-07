@@ -228,63 +228,31 @@ function renderGraphs() {
     const codeBlocks = renderArea.querySelectorAll('pre code.language-text');
     codeBlocks.forEach(block => {
         const content = block.textContent;
+        // Simple heuristic for an ASCII graph: contains axes characters
         if (content.includes('^') && content.includes('|')) {
-            const archetype = detectArchetype(content);
-            if (archetype) {
-                const svg = generateSVG(archetype);
-                block.parentElement.replaceWith(svg);
-            }
+            const pre = block.parentElement;
+            
+            const container = document.createElement('figure');
+            container.className = 'faithful-graph-container';
+            
+            const caption = document.createElement('figcaption');
+            caption.className = 'faithful-graph-caption';
+            caption.innerHTML = '<span class="blueprint-label">FIG.</span> Faithful ASCII Reproduction';
+            
+            // Apply syntax highlighting to specific labels within the ASCII text
+            let styledContent = content
+                .replace(/\b(S|D)\b(?![\w-])/g, '<span style="color: var(--accent-blue); font-weight: bold;">$1</span>')
+                .replace(/\b(MC|AC|MR|AR)\b/g, '<span style="color: var(--accent-amber); font-weight: bold;">$1</span>')
+                .replace(/\b(Price|Qty|Output)\b/g, '<span style="color: var(--text-primary); font-weight: bold;">$1</span>');
+                
+            block.innerHTML = styledContent;
+            pre.className = 'faithful-graph-pre';
+            
+            pre.parentNode.insertBefore(container, pre);
+            container.appendChild(caption);
+            container.appendChild(pre);
         }
     });
-}
-
-function detectArchetype(text) {
-    if (text.includes('MC') && text.includes('AR')) return 'monopoly';
-    if (text.includes('S') && text.includes('D')) return 'supply-demand';
-    return null;
-}
-
-function generateSVG(type) {
-    const container = document.createElement('figure');
-    container.className = 'graph-container';
-    
-    // Colors from design spec
-    const colors = {
-        axis: 'var(--border)',
-        demand: 'var(--accent-red)',
-        supply: 'var(--accent-blue)',
-        mc: 'var(--accent-green)',
-        ac: 'var(--accent-amber)',
-        mr: 'var(--accent-purple)',
-        text: 'var(--text-secondary)'
-    };
-
-    if (type === 'supply-demand') {
-        container.innerHTML = `
-            <svg viewBox="0 0 200 150" style="max-width: 400px; margin: 1rem auto; display: block; background: var(--bg-elevated); border-radius: 8px; padding: 10px;">
-                <path d="M30,20 L30,120 L170,120" fill="none" stroke="${colors.axis}" stroke-width="2"/>
-                <path d="M40,40 L160,110" stroke="${colors.supply}" stroke-width="2" fill="none"/> <!-- Supply -->
-                <path d="M40,110 L160,40" stroke="${colors.demand}" stroke-width="2" fill="none"/> <!-- Demand -->
-                <text x="175" y="125" font-family="var(--font-mono)" font-size="10" fill="${colors.text}">Q</text>
-                <text x="15" y="25" font-family="var(--font-mono)" font-size="10" fill="${colors.text}">P</text>
-                <text x="150" y="35" font-family="var(--font-mono)" font-size="10" fill="${colors.demand}">D</text>
-                <text x="150" y="115" font-family="var(--font-mono)" font-size="10" fill="${colors.supply}">S</text>
-            </svg>
-            <figcaption style="text-align: center; font-family: var(--font-body); font-style: italic; font-size: 0.8rem; color: var(--text-muted);">Figure: Supply and Demand Equilibrium</figcaption>`;
-    } else if (type === 'monopoly') {
-        container.innerHTML = `
-            <svg viewBox="0 0 200 150" style="max-width: 400px; margin: 1rem auto; display: block; background: var(--bg-elevated); border-radius: 8px; padding: 10px;">
-                <path d="M30,20 L30,120 L170,120" fill="none" stroke="${colors.axis}" stroke-width="2"/>
-                <path d="M40,30 L160,100" stroke="${colors.demand}" stroke-width="2" fill="none"/> <!-- AR -->
-                <path d="M40,30 L100,120" stroke="${colors.mr}" stroke-width="2" fill="none"/> <!-- MR -->
-                <path d="M40,110 Q100,20 160,110" stroke="${colors.ac}" stroke-width="2" fill="none"/> <!-- AC -->
-                <path d="M30,110 Q100,110 160,20" stroke="${colors.mc}" stroke-width="2" fill="none"/> <!-- MC -->
-                <text x="175" y="125" font-family="var(--font-mono)" font-size="10" fill="${colors.text}">Q</text>
-                <text x="15" y="25" font-family="var(--font-mono)" font-size="10" fill="${colors.text}">P</text>
-            </svg>
-            <figcaption style="text-align: center; font-family: var(--font-body); font-style: italic; font-size: 0.8rem; color: var(--text-muted);">Figure: Monopoly Equilibrium (MC, AC, MR, AR)</figcaption>`;
-    }
-    return container;
 }
 
 // Search & Indexing
