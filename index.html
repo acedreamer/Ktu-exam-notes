@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en" class="dark-mode">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KTU Exam Notes | Industrial Editorial</title>
+    
+    <!-- Industrial Editorial Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible+Next:ital,wght@0,400;0,700;1,400&family=Courier+Prime:ital,wght@0,400;0,700;1,400&family=Domine:wght@400;700&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+</head>
+<body>
+    <!-- Mobile Top Bar -->
+    <header id="mobile-bar">
+        <button id="menu-toggle" aria-label="Toggle Menu">☰</button>
+        <span class="brand">KTU Notes</span>
+        <button id="theme-toggle-mobile" class="theme-btn">🌙</button>
+    </header>
+
+    <aside id="sidebar">
+        <header class="sidebar-header">
+            <h1 class="brand">KTU Notes</h1>
+            <div class="search-container">
+                <input type="text" id="search" placeholder="SEARCH MODULES..." autocomplete="off">
+            </div>
+        </header>
+        
+        <nav id="nav-content"></nav>
+        
+        <footer class="sidebar-footer">
+            <div class="filter-group">
+                <span class="filter-label">Quick Filters</span>
+                <div class="filter-chips">
+                    <button class="chip" data-tag="SURE SHOT">SURE SHOT</button>
+                    <button class="chip" data-tag="HIGH YIELD">HIGH YIELD</button>
+                    <button class="chip" data-tag="PYQ">PYQ</button>
+                </div>
+            </div>
+            <button id="theme-toggle" class="theme-btn">SWITCH THEME</button>
+        </footer>
+    </aside>
+
+    <div id="sidebar-overlay"></div>
+
+    <main id="content">
+        <div id="progress-container">
+            <div id="progress-bar"></div>
+        </div>
+        <article id="render-area" class="fade-in">
+            <!-- Content will be injected here -->
+        </article>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+    <script src="app.js" type="module"></script>
+</body>
+</html>
