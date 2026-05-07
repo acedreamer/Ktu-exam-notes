@@ -16,9 +16,16 @@
 <body>
     <!-- Mobile Top Bar -->
     <header id="mobile-bar">
-        <button id="menu-toggle" aria-label="Toggle Menu">☰</button>
+        <button id="menu-toggle" aria-label="Toggle Menu">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
         <span class="brand">KTU Notes</span>
-        <button id="theme-toggle-mobile" class="theme-btn">🌙</button>
+        <label class="theme-slider" for="theme-toggle-mobile-input">
+            <input type="checkbox" id="theme-toggle-mobile-input" class="theme-input">
+            <span class="slider"></span>
+        </label>
     </header>
 
     <aside id="sidebar">
@@ -40,7 +47,17 @@
                     <button class="chip" data-tag="PYQ">PYQ</button>
                 </div>
             </div>
-            <button id="theme-toggle" class="theme-btn">SWITCH THEME</button>
+            <div class="theme-slider-container">
+                <span class="filter-label">Theme Control</span>
+                <label class="theme-slider-alt">
+                    <input type="checkbox" id="theme-toggle-input" class="theme-input">
+                    <div class="slider-track">
+                        <span class="slider-thumb"></span>
+                        <span class="slider-label dark">DARK</span>
+                        <span class="slider-label light">LIGHT</span>
+                    </div>
+                </label>
+            </div>
         </footer>
     </aside>
 

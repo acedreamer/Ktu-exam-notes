@@ -5,8 +5,8 @@ const progressBar = document.getElementById('progress-bar');
 const menuToggle = document.getElementById('menu-toggle');
 const sidebar = document.getElementById('sidebar');
 const overlay = document.getElementById('sidebar-overlay');
-const themeToggle = document.getElementById('theme-toggle');
-const themeToggleMobile = document.getElementById('theme-toggle-mobile');
+const themeInput = document.getElementById('theme-toggle-input');
+const themeInputMobile = document.getElementById('theme-toggle-mobile-input');
 
 let searchIndex = [];
 let currentManifest = null;
@@ -34,20 +34,28 @@ function setupEventListeners() {
     menuToggle.addEventListener('click', toggleSidebar);
     overlay.addEventListener('click', closeSidebar);
 
-    const toggleTheme = () => {
-        const isDark = document.documentElement.classList.toggle('dark-mode');
-        document.documentElement.classList.toggle('light-mode', !isDark);
-        localStorage.setItem('theme', isDark ? 'dark' : 'light');
-        [themeToggle, themeToggleMobile].forEach(btn => btn.innerText = isDark ? '🌙' : '☀️');
+    const toggleTheme = (e) => {
+        const isLight = e.target.checked;
+        document.documentElement.classList.toggle('light-mode', isLight);
+        document.documentElement.classList.toggle('dark-mode', !isLight);
+        localStorage.setItem('theme', isLight ? 'light' : 'dark');
+        
+        // Sync both inputs
+        themeInput.checked = isLight;
+        themeInputMobile.checked = isLight;
     };
 
-    [themeToggle, themeToggleMobile].forEach(btn => btn.addEventListener('click', toggleTheme));
+    themeInput.addEventListener('change', toggleTheme);
+    themeInputMobile.addEventListener('change', toggleTheme);
 
     contentArea.addEventListener('scroll', updateProgress);
 
     // Load saved theme
     if (localStorage.getItem('theme') === 'light') {
-        toggleTheme();
+        themeInput.checked = true;
+        themeInputMobile.checked = true;
+        document.documentElement.classList.add('light-mode');
+        document.documentElement.classList.remove('dark-mode');
     }
 }
 
