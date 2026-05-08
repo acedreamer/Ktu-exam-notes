@@ -150,7 +150,7 @@ async function handleRoute() {
         const activeTopicList = document.getElementById(`topics-${subject}-${module}`);
         if (activeTopicList) {
             activeTopicList.innerHTML = topics.map(t => `
-                <span class="topic-item" onclick="document.getElementById('${t.id}').scrollIntoView({behavior: 'smooth'})">${t.text}</span>
+                <span class="topic-item" data-id="${t.id}" onclick="document.getElementById('${t.id}').scrollIntoView({behavior: 'smooth'})">${t.text}</span>
             `).join('');
         }
         
@@ -176,18 +176,23 @@ function updateProgress() {
     const headings = Array.from(renderArea.querySelectorAll('h2'));
     let activeTopicId = null;
     
-    for (const h of headings) {
-        const top = h.offsetTop - contentArea.offsetTop;
-        if (scroll >= top - 20) {
+    // Reverse find the first heading that is above the viewport top
+    for (let i = headings.length - 1; i >= 0; i--) {
+        const h = headings[i];
+        if (h.offsetTop - contentArea.offsetTop <= scroll + 100) {
             activeTopicId = h.id;
-        } else {
             break;
         }
     }
 
     document.querySelectorAll('.topic-item').forEach(item => {
-        const isMatched = item.onclick.toString().includes(activeTopicId);
+        const isMatched = item.getAttribute('data-id') === activeTopicId;
         item.classList.toggle('active', isMatched);
+        
+        if (isMatched) {
+            // Ensure the active topic item is visible in the sidebar
+            item.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
     });
 }
 
