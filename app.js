@@ -169,8 +169,14 @@ async function handleRoute() {
 function updateProgress() {
     const scroll = contentArea.scrollTop;
     const height = contentArea.scrollHeight - contentArea.clientHeight;
-    const progress = (scroll / height) * 100;
-    progressBar.style.width = `${progress}%`;
+    
+    // Ensure progress bar updates correctly
+    if (height > 0) {
+        const progress = (scroll / height) * 100;
+        progressBar.style.width = `${progress}%`;
+    } else {
+        progressBar.style.width = '0%';
+    }
 
     // Highlight active topic in sidebar
     const headings = Array.from(renderArea.querySelectorAll('h2'));
@@ -185,15 +191,18 @@ function updateProgress() {
         }
     }
 
-    document.querySelectorAll('.topic-item').forEach(item => {
-        const isMatched = item.getAttribute('data-id') === activeTopicId;
-        item.classList.toggle('active', isMatched);
-        
-        if (isMatched) {
-            // Ensure the active topic item is visible in the sidebar
-            item.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-        }
-    });
+    if (activeTopicId) {
+        document.querySelectorAll('.topic-item').forEach(item => {
+            const isMatched = item.getAttribute('data-id') === activeTopicId;
+            const wasActive = item.classList.contains('active');
+            item.classList.toggle('active', isMatched);
+            
+            if (isMatched && !wasActive) {
+                // Ensure the active topic item is visible in the sidebar
+                item.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }
+        });
+    }
 }
 
 function wrapSections() {
