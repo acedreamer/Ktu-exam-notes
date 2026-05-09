@@ -170,6 +170,7 @@ async function handleRoute() {
         // Initial progress update after content is injected
         requestAnimationFrame(() => {
             updateProgress();
+            initTopicObserver(); // Initialize observer for the new headings
             renderArea.classList.remove('fade-in');
             void renderArea.offsetWidth;
             renderArea.classList.add('fade-in');
@@ -181,39 +182,31 @@ async function handleRoute() {
 }
 
 let lastActiveTopicId = null;
+let topicObserver = null;
 
-function updateProgress() {
-    if (!contentArea || !renderArea) return;
-    
-    const scroll = contentArea.scrollTop;
-    const height = contentArea.scrollHeight - contentArea.clientHeight;
-    
-    if (height > 0) {
-        const progress = (scroll / height) * 100;
-        progressBar.style.width = `${progress}%`;
-    } else {
-        progressBar.style.width = '0%';
-    }
+function initTopicObserver() {
+    if (topicObserver) topicObserver.disconnect();
 
-    const headings = Array.from(renderArea.querySelectorAll('h2'));
-    let activeTopicId = null;
-    
-    const containerRect = contentArea.getBoundingClientRect();
+    topicObserver = new IntersectionObserver((entries) => {
+        // Find the entry that is intersecting and closest to the top
+        const visibleEntries = entries.filter(e => e.isIntersecting);
+        if (visibleEntries.length === 0) return;
 
-    // Use getBoundingClientRect for precise viewport-relative calculation
-    for (let i = 0; i < headings.length; i++) {
-        const rect = headings[i].getBoundingClientRect();
-        // If the heading's top is near or above the top of the content container
-        if (rect.top - containerRect.top <= 160) {
-            activeTopicId = headings[i].id;
-        } else {
-            break;
-        }
-    }
+        // Sort by top position to find the one closest to the top of the viewport
+        visibleEntries.sort((a, b) => a.boundingClientRect.top - b.getBoundingClientRect().top);
+        
+        const activeTopicId = visibleEntries[0].target.id;
+        updateActiveTopicUI(activeTopicId);
+    }, {
+        root: contentArea,
+        rootMargin: '0px 0px -80% 0px', // Trigger when heading is in the top 20% of the area
+        threshold: 0
+    });
 
-    // Default to first heading if at the very top
-    if (!activeTopicId && headings.length > 0) activeTopicId = headings[0].id;
+    renderArea.querySelectorAll('h2').forEach(h => topicObserver.observe(h));
+}
 
+function updateActiveTopicUI(activeTopicId) {
     if (activeTopicId && activeTopicId !== lastActiveTopicId) {
         lastActiveTopicId = activeTopicId;
         
@@ -232,6 +225,20 @@ function updateProgress() {
                 }
             }
         });
+    }
+}
+
+function updateProgress() {
+    if (!contentArea || !renderArea) return;
+    
+    const scroll = contentArea.scrollTop;
+    const height = contentArea.scrollHeight - contentArea.clientHeight;
+    
+    if (height > 0) {
+        const progress = (scroll / height) * 100;
+        progressBar.style.width = `${progress}%`;
+    } else {
+        progressBar.style.width = '0%';
     }
 }
 
