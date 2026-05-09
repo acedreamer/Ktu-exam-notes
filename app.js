@@ -10,6 +10,7 @@ const themeInputMobile = document.getElementById('theme-toggle-mobile-input');
 
 let searchIndex = [];
 let currentManifest = null;
+let lastActiveTopicId = null;
 
 // Initialize App
 async function init() {
@@ -93,14 +94,15 @@ async function handleRoute() {
         return;
     }
     
-    // Completely reset tracking state for the new module
+    // RESET STATE: Clear tracking so new module highlights apply immediately
+    lastActiveTopicId = null;
     contentArea.scrollTop = 0;
     progressBar.style.width = '0%';
 
     const [subject, module] = hash.split('/');
     const path = `notes/${subject}/${module}.md`;
     
-    // Update active state in sidebar
+    // Update active module state in sidebar
     document.querySelectorAll('#nav-content a').forEach(a => {
         const isActive = a.getAttribute('href') === `#${hash}`;
         a.classList.toggle('active', isActive);
@@ -109,7 +111,7 @@ async function handleRoute() {
         }
     });
 
-    // Reset all topic lists in sidebar
+    // Clear all existing topic lists
     document.querySelectorAll('.topic-list').forEach(tl => tl.innerHTML = '');
 
     try {
@@ -131,16 +133,12 @@ async function handleRoute() {
         const html = marked.parse(text);
         renderArea.innerHTML = html;
         
-        // Stage 3: Section Card Wrapping
+        // Stage 3: Post-processing
         wrapSections();
-
-        // Stage 4: Analogy Blocks
         wrapAnalogies();
-
-        // Stage 5: Graphs
         renderGraphs();
 
-        // Stage 6: KaTeX
+        // Stage 4: Math
         renderMathInElement(renderArea, {
             delimiters: [
                 {left: '$$', right: '$$', display: true},
@@ -149,9 +147,9 @@ async function handleRoute() {
             throwOnError: false
         });
 
-        // Stage 7: Extract ONLY Numbered 'Master Topics' for Sidebar
+        // Stage 5: Master Topic Extraction (Filtered for numbered topics only)
         const topics = Array.from(renderArea.querySelectorAll('h2'))
-            .filter(h => /^\d+\./.test(h.innerText.trim())) // Only headings starting with "1.", "2.", etc.
+            .filter(h => /^\d+\./.test(h.innerText.trim()))
             .map((h, i) => {
                 h.id = `master-topic-${i}`;
                 return { id: h.id, text: h.innerText };
@@ -164,10 +162,7 @@ async function handleRoute() {
             `).join('');
         }
         
-        // Ensure scroll is at top before sync
-        contentArea.scrollTop = 0;
-        
-        // Initial sync after content is injected and layout settled
+        // Final sync after rendering
         setTimeout(() => {
             updateProgress();
             renderArea.classList.remove('fade-in');
@@ -194,29 +189,29 @@ function updateProgress() {
         progressBar.style.width = '0%';
     }
 
-    // Master Zone Logic: Find the active numbered topic
+    // MASTER ZONE DETECTION: Find the active topic
     const masterHeadings = Array.from(renderArea.querySelectorAll('h2'))
-        .filter(h => h.id.startsWith('master-topic-'));
+        .filter(h => h.id && h.id.startsWith('master-topic-'));
     
-    let activeTopicId = null;
-    
-    // We consider a topic active if its heading has passed the 30% mark of the viewport
-    const readingThreshold = window.innerHeight * 0.3;
+    if (masterHeadings.length === 0) return;
 
+    let activeTopicId = null;
+    const threshold = 140; // Detection sweet-spot
+
+    // Find the last heading that has entered the top portion of the screen
     for (let i = 0; i < masterHeadings.length; i++) {
         const rect = masterHeadings[i].getBoundingClientRect();
-        if (rect.top <= readingThreshold) {
+        if (rect.top <= threshold) {
             activeTopicId = masterHeadings[i].id;
         } else {
-            // As soon as we find a heading that is below our "active zone", 
-            // we know the PREVIOUS one is the one the user is currently in.
             break;
         }
     }
 
-    // Default to first topic if we haven't reached any threshold yet
-    if (!activeTopicId && masterHeadings.length > 0) activeTopicId = masterHeadings[0].id;
+    // Default to first if none reached threshold yet
+    if (!activeTopicId) activeTopicId = masterHeadings[0].id;
 
+    // Only update UI if the active topic has actually changed
     if (activeTopicId && activeTopicId !== lastActiveTopicId) {
         lastActiveTopicId = activeTopicId;
         
@@ -226,8 +221,14 @@ function updateProgress() {
             item.classList.toggle('active', isMatched);
             
             if (isMatched && !wasActive) {
-                // Ensure the active topic item is visible in the sidebar
-                item.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                // Ensure sidebar scrolls to keep the highlight visible
+                const sidebarNav = document.getElementById('nav-content');
+                const itemRect = item.getBoundingClientRect();
+                const navRect = sidebarNav.getBoundingClientRect();
+                
+                if (itemRect.top < navRect.top || itemRect.bottom > navRect.bottom) {
+                    item.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                }
             }
         });
     }
@@ -252,7 +253,6 @@ function wrapSections() {
             card.className = `section-card section-${type}`;
             card.innerHTML = `<div class="section-header">${icon} ${label}</div>`;
             
-            // Move heading and subsequent elements until next major heading
             h.parentNode.insertBefore(card, h);
             let next = h;
             while (next && (next === h || (next.tagName !== 'H2' && next.tagName !== 'H3'))) {
@@ -300,8 +300,6 @@ function detectArchetype(text) {
 function generateSVG(type) {
     const container = document.createElement('figure');
     container.className = 'graph-container';
-    
-    // Theme-aware colors
     const colors = {
         axis: 'var(--text-muted)',
         grid: 'var(--border)',
@@ -322,92 +320,31 @@ function generateSVG(type) {
                       <text x="25" y="25" font-family="var(--font-mono)" font-size="10" fill="${colors.text}">P</text>`;
 
     if (type === 'supply-demand') {
-        svgContent = `
-            ${axisBase}
-            <path d="M50,110 L170,30" stroke="${colors.supply}" stroke-width="2" fill="none" stroke-linecap="round"/> <!-- S -->
-            <path d="M50,30 L170,110" stroke="${colors.demand}" stroke-width="2" fill="none" stroke-linecap="round"/> <!-- D -->
-            <circle cx="110" cy="70" r="3" fill="${colors.text}"/>
-            <text x="175" y="35" font-family="var(--font-mono)" font-size="10" font-weight="bold" fill="${colors.demand}">D</text>
-            <text x="175" y="115" font-family="var(--font-mono)" font-size="10" font-weight="bold" fill="${colors.supply}">S</text>
-            <path d="M40,70 L110,70 L110,120" stroke="${colors.axis}" stroke-width="1" stroke-dasharray="4" fill="none"/>
-            <text x="115" y="65" font-family="var(--font-mono)" font-size="9" fill="${colors.text}">E</text>
-        `;
+        svgContent = `${axisBase}<path d="M50,110 L170,30" stroke="${colors.supply}" stroke-width="2" fill="none"/><path d="M50,30 L170,110" stroke="${colors.demand}" stroke-width="2" fill="none"/><circle cx="110" cy="70" r="3" fill="${colors.text}"/><path d="M40,70 L110,70 L110,120" stroke="${colors.axis}" stroke-width="1" stroke-dasharray="4" fill="none"/>`;
         caption = 'Market Equilibrium: Supply and Demand';
     } else if (type === 'monopoly') {
-        svgContent = `
-            ${axisBase}
-            <path d="M50,30 L170,100" stroke="${colors.demand}" stroke-width="2" fill="none" stroke-linecap="round"/> <!-- AR -->
-            <path d="M50,30 L110,120" stroke="${colors.mr}" stroke-width="2" fill="none" stroke-linecap="round"/> <!-- MR -->
-            <path d="M50,100 Q110,20 170,100" stroke="${colors.ac}" stroke-width="2" fill="none" stroke-linecap="round"/> <!-- AC -->
-            <path d="M40,110 Q110,110 170,20" stroke="${colors.mc}" stroke-width="2" fill="none" stroke-linecap="round"/> <!-- MC -->
-            <text x="175" y="105" font-family="var(--font-mono)" font-size="9" fill="${colors.demand}">AR (D)</text>
-            <text x="115" y="115" font-family="var(--font-mono)" font-size="9" fill="${colors.mr}">MR</text>
-            <text x="175" y="25" font-family="var(--font-mono)" font-size="9" fill="${colors.mc}">MC</text>
-        `;
-        caption = 'Monopoly: Equilibrium with MC, AC, MR, AR';
+        svgContent = `${axisBase}<path d="M50,30 L170,100" stroke="${colors.demand}" stroke-width="2" fill="none"/><path d="M50,30 L110,120" stroke="${colors.mr}" stroke-width="2" fill="none"/><path d="M50,100 Q110,20 170,100" stroke="${colors.ac}" stroke-width="2" fill="none"/><path d="M40,110 Q110,110 170,20" stroke="${colors.mc}" stroke-width="2" fill="none"/>`;
+        caption = 'Monopoly: Equilibrium (MC, AC, MR, AR)';
     } else if (type === 'perfect-competition') {
-        svgContent = `
-            <!-- Market Side -->
-            <g transform="translate(0,0) scale(0.9)">
-                <path d="M30,20 L30,120 L100,120" fill="none" stroke="${colors.axis}" stroke-width="1.5"/>
-                <path d="M40,40 L90,110" stroke="${colors.supply}" stroke-width="1.5" fill="none"/>
-                <path d="M40,110 L90,40" stroke="${colors.demand}" stroke-width="1.5" fill="none"/>
-                <text x="50" y="15" font-family="var(--font-mono)" font-size="8" fill="${colors.text}" font-weight="bold">MARKET</text>
-            </g>
-            <!-- Firm Side -->
-            <g transform="translate(100,0) scale(0.9)">
-                <path d="M30,20 L30,120 L100,120" fill="none" stroke="${colors.axis}" stroke-width="1.5"/>
-                <path d="M30,75 L100,75" stroke="${colors.demand}" stroke-width="2" fill="none"/> <!-- Price -->
-                <path d="M40,100 Q65,40 95,100" stroke="${colors.ac}" stroke-width="1.5" fill="none"/>
-                <path d="M30,110 Q65,110 95,30" stroke="${colors.mc}" stroke-width="1.5" fill="none"/>
-                <text x="50" y="15" font-family="var(--font-mono)" font-size="8" fill="${colors.text}" font-weight="bold">FIRM</text>
-                <text x="75" y="70" font-family="var(--font-mono)" font-size="7" fill="${colors.demand}">P=AR=MR</text>
-            </g>
-            <path d="M85,67 L130,67" stroke="${colors.axis}" stroke-width="1" stroke-dasharray="2" fill="none"/>
-        `;
-        caption = 'Perfect Competition: Market vs Individual Firm (Price Taker)';
+        svgContent = `<g transform="translate(0,0) scale(0.9)"><path d="M30,20 L30,120 L100,120" fill="none" stroke="${colors.axis}" stroke-width="1.5"/><path d="M40,40 L90,110" stroke="${colors.supply}" stroke-width="1.5" fill="none"/><path d="M40,110 L90,40" stroke="${colors.demand}" stroke-width="1.5" fill="none"/></g><g transform="translate(100,0) scale(0.9)"><path d="M30,20 L30,120 L100,120" fill="none" stroke="${colors.axis}" stroke-width="1.5"/><path d="M30,75 L100,75" stroke="${colors.demand}" stroke-width="2" fill="none"/><path d="M40,100 Q65,40 95,100" stroke="${colors.ac}" stroke-width="1.5" fill="none"/><path d="M30,110 Q65,110 95,30" stroke="${colors.mc}" stroke-width="1.5" fill="none"/></g>`;
+        caption = 'Perfect Competition: Market vs Firm';
     } else if (type === 'kinked-demand') {
-        svgContent = `
-            ${axisBase}
-            <path d="M50,40 L110,70" stroke="${colors.demand}" stroke-width="2.5" fill="none" stroke-linecap="round"/> <!-- Elastic part -->
-            <path d="M110,70 L160,120" stroke="${colors.demand}" stroke-width="2.5" fill="none" stroke-linecap="round"/> <!-- Inelastic part -->
-            <circle cx="110" cy="70" r="3" fill="${colors.accent_red}"/>
-            <path d="M40,70 L110,70 L110,120" stroke="${colors.axis}" stroke-width="1" stroke-dasharray="4" fill="none"/>
-            <text x="55" y="35" font-family="var(--font-mono)" font-size="8" fill="${colors.text}">Elastic</text>
-            <text x="135" y="105" font-family="var(--font-mono)" font-size="8" fill="${colors.text}">Inelastic</text>
-            <text x="115" y="65" font-family="var(--font-mono)" font-size="9" fill="${colors.text}" font-weight="bold">KINK (P*)</text>
-        `;
-        caption = 'Oligopoly: Sweezy\'s Kinked Demand Curve';
+        svgContent = `${axisBase}<path d="M50,40 L110,70" stroke="${colors.demand}" stroke-width="2.5" fill="none"/><path d="M110,70 L160,120" stroke="${colors.demand}" stroke-width="2.5" fill="none"/><circle cx="110" cy="70" r="3" fill="var(--accent-red)"/><path d="M40,70 L110,70 L110,120" stroke="${colors.axis}" stroke-width="1" stroke-dasharray="4" fill="none"/>`;
+        caption = 'Oligopoly: Kinked Demand Curve';
     }
 
-    container.innerHTML = `
-        <div style="background: ${colors.bg}; padding: 20px; border: 1px solid var(--border); margin: 2rem 0;">
-            <svg viewBox="0 0 200 150" style="width: 100%; height: auto; display: block; overflow: visible;">
-                ${svgContent}
-            </svg>
-        </div>
-        <figcaption style="text-align: center; font-family: var(--font-body); font-style: italic; font-size: 0.85rem; color: var(--text-secondary); margin-top: -1.5rem; margin-bottom: 2rem;">
-            <span style="color: var(--accent-amber); font-weight: bold; font-family: var(--font-mono); font-size: 0.7rem; text-transform: uppercase; margin-right: 0.5rem;">[Figure]</span> ${caption}
-        </figcaption>`;
-    
+    container.innerHTML = `<div style="background: ${colors.bg}; padding: 20px; border: 1px solid var(--border); margin: 2rem 0;"><svg viewBox="0 0 200 150" style="width: 100%; height: auto; display: block; overflow: visible;">${svgContent}</svg></div><figcaption style="text-align: center; font-family: var(--font-body); font-style: italic; font-size: 0.85rem; color: var(--text-secondary); margin-top: -1.5rem; margin-bottom: 2rem;"><span style="color: var(--accent-amber); font-weight: bold; font-family: var(--font-mono); font-size: 0.7rem; text-transform: uppercase; margin-right: 0.5rem;">[Figure]</span> ${caption}</figcaption>`;
     return container;
 }
 
-// Search & Indexing
 const searchInput = document.getElementById('search');
-
 async function buildIndex(manifest) {
     for (const sub of manifest.subjects) {
         for (const mod of sub.modules) {
             try {
                 const res = await fetch(mod.path);
                 const text = await res.text();
-                searchIndex.push({ 
-                    ...mod, 
-                    subjectLabel: sub.label,
-                    subjectId: sub.id,
-                    content: text.toLowerCase().replace(/^---[\s\S]*?---\n/, '') 
-                });
+                searchIndex.push({ ...mod, subjectLabel: sub.label, subjectId: sub.id, content: text.toLowerCase().replace(/^---[\s\S]*?---\n/, '') });
             } catch (e) {}
         }
     }
@@ -415,16 +352,10 @@ async function buildIndex(manifest) {
 
 searchInput.addEventListener('input', (e) => {
     const term = e.target.value.toLowerCase();
-    if (!term) {
-        renderSidebar(currentManifest);
-        return;
-    }
+    if (!term) { renderSidebar(currentManifest); return; }
     const results = searchIndex.filter(m => m.content.includes(term) || m.title.toLowerCase().includes(term));
     if (results.length > 0) {
-        navArea.innerHTML = `<div style="padding: 0 1.5rem; font-family: var(--font-mono); font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase;">Search Results</div>` + 
-            results.map(mod => `
-                <li><a href="#${mod.subjectId}/${mod.id}">${mod.title} <small style="display:block; opacity: 0.6">${mod.subjectLabel}</small></a></li>
-            `).join('');
+        navArea.innerHTML = `<div style="padding: 0 1.5rem; font-family: var(--font-mono); font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase;">Search Results</div>` + results.map(mod => `<li><a href="#${mod.subjectId}/${mod.id}">${mod.title} <small style="display:block; opacity: 0.6">${mod.subjectLabel}</small></a></li>`).join('');
     } else {
         navArea.innerHTML = `<div style="padding: 1.5rem; color: var(--text-muted); font-size: 0.8rem;">No results found for "${term}"</div>`;
     }
