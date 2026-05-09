@@ -190,16 +190,19 @@ function initTopicObserver() {
 
     const observerOptions = {
         root: contentArea,
-        // Extremely narrow window at the top (between 10% and 20% of the height)
-        rootMargin: '-10% 0px -80% 0px',
-        threshold: [0, 1]
+        // Wider detection window (10% to 50% from top) for better direction-agnostic detection
+        rootMargin: '-10% 0px -50% 0px',
+        threshold: 0
     };
 
     topicObserver = new IntersectionObserver((entries) => {
-        // Find entries that are entering the viewport from below or are already there
-        const activeEntry = entries.find(e => e.isIntersecting);
-        if (activeEntry) {
-            updateActiveTopicUI(activeEntry.target.id);
+        // Find the topmost intersecting heading
+        const intersecting = entries
+            .filter(e => e.isIntersecting)
+            .sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top);
+
+        if (intersecting.length > 0) {
+            updateActiveTopicUI(intersecting[0].target.id);
         }
     }, observerOptions);
 
