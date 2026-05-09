@@ -60,8 +60,6 @@ html, body {
     overflow-x: hidden; 
     width: 100%; 
     position: relative; 
-    margin: 0; 
-    padding: 0;
 }
 html { scroll-behavior: smooth; font-size: 16px; }
 body { 
@@ -279,7 +277,7 @@ body {
     width: 0%;
     background: var(--accent-blue);
     box-shadow: 0 0 15px var(--accent-blue);
-    transition: width 150ms cubic-bezier(0.4, 0, 0.2, 1);
+    transition: width 150ms cubic-bezier(0.65, 0, 0.35, 1);
 }
 
 /* Sidebar Sub-topics */
@@ -360,7 +358,7 @@ code { background: var(--bg-elevated); padding: 0.2em 0.4em; }
 .badge-yield { border-color: var(--accent-orange); background: color-mix(in oklch, var(--accent-orange) 15%, transparent); color: var(--text-primary); }
 .badge-pyq { border-color: var(--border); background: var(--bg-elevated); color: var(--text-secondary); }
 
-/* Section Cards - BANNED BORDER-LEFT REMOVED */
+/* Section Cards */
 .section-card {
     margin: 3rem 0;
     padding: 2rem;
@@ -388,7 +386,7 @@ code { background: var(--bg-elevated); padding: 0.2em 0.4em; }
 .section-purple { --accent-color: var(--accent-purple); }
 .section-red { --accent-color: var(--accent-red); }
 
-/* Analogy Blocks - BANNED BORDER-LEFT REMOVED */
+/* Analogy Blocks */
 .analogy-block {
     margin: 2.5rem 0;
     padding: 2rem;
@@ -469,18 +467,18 @@ tr:hover td { background: color-mix(in oklch, var(--bg-elevated) 50%, transparen
 /* Mobile Bar */
 #mobile-bar {
     display: none;
-    height: 48px; /* Reduced height */
+    height: 48px;
     background: var(--bg-elevated);
     border-bottom: 1px solid var(--border);
-    padding: 0 0.4rem; /* Reduced padding by ~60-70% */
+    padding: 0 0.4rem;
     align-items: center;
     position: sticky;
     top: 0;
-    z-index: 200;
+    z-index: 1000;
 }
 
 #mobile-bar .brand {
-    font-size: 0.9rem; /* Reduced by ~40% from 1.5rem */
+    font-size: 0.9rem;
     position: absolute;
     left: 50%;
     transform: translateX(-50%);
@@ -495,7 +493,7 @@ tr:hover td { background: color-mix(in oklch, var(--bg-elevated) 50%, transparen
     display: flex;
     flex-direction: column;
     gap: 4px;
-    z-index: 301;
+    z-index: 3000; /* Highest to remain clickable */
 }
 
 #menu-toggle span {
@@ -506,7 +504,7 @@ tr:hover td { background: color-mix(in oklch, var(--bg-elevated) 50%, transparen
     transition: transform 300ms var(--ease-out), opacity 300ms var(--ease-out);
 }
 
-/* Hamburger to X Morph */
+/* Hamburger to X Morph using body state */
 body.sidebar-open #menu-toggle span:nth-child(1) { transform: translateY(5.5px) rotate(45deg); }
 body.sidebar-open #menu-toggle span:nth-child(2) { opacity: 0; }
 body.sidebar-open #menu-toggle span:nth-child(3) { transform: translateY(-5.5px) rotate(-45deg); }
@@ -549,6 +547,8 @@ body.sidebar-open #menu-toggle span:nth-child(3) { transform: translateY(-5.5px)
 
 @media (max-width: 768px) {
     body { flex-direction: column; }
+    
+    /* Auto-zoom prevention */
     #search, #nav-content li a, .topic-item { font-size: 16px !important; }
     
     #sidebar {
@@ -556,18 +556,25 @@ body.sidebar-open #menu-toggle span:nth-child(3) { transform: translateY(-5.5px)
         left: 0;
         top: 0;
         transform: translateX(-100%);
-        z-index: 300;
+        z-index: 2000;
         box-shadow: 10px 0 30px rgba(0,0,0,0.5);
         height: 100vh;
+        visibility: hidden;
+        pointer-events: none;
+        transition: transform 400ms var(--ease-out), visibility 400ms var(--ease-out);
     }
-    body.sidebar-open #sidebar { transform: translateX(0); }
+    body.sidebar-open #sidebar { 
+        transform: translateX(0); 
+        visibility: visible;
+        pointer-events: auto;
+    }
     
     #sidebar-overlay {
         display: block;
         position: fixed;
         inset: 0;
         background: rgba(0,0,0,0.7);
-        z-index: 250;
+        z-index: 1500;
         backdrop-filter: blur(4px);
         opacity: 0;
         pointer-events: none;
@@ -578,14 +585,19 @@ body.sidebar-open #menu-toggle span:nth-child(3) { transform: translateY(-5.5px)
         pointer-events: auto;
     }
     
-    #mobile-bar { display: flex; }
+    #mobile-bar { 
+        display: flex; 
+        z-index: 1000;
+    }
+    
     #content { padding: 0 1rem 2rem 1rem; }
     
     #progress-container {
         position: fixed;
-        top: 48px; /* Just below mobile bar */
+        top: 48px; 
         left: 0;
         width: 100%;
+        z-index: 900; /* Behind header and sidebar */
     }
 }
 
