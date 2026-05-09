@@ -292,9 +292,19 @@ body {
     display: block;
 }
 .topic-item::before { content: '→ '; opacity: 0.5; }
-.topic-item:hover, .topic-item.active { color: var(--text-primary); }
+.topic-item:hover { 
+    color: var(--text-primary); 
+    background: color-mix(in oklch, var(--accent-blue) 5%, transparent);
+}
 .topic-item:active { transform: translateX(2px); }
-.topic-item.active { color: var(--accent-blue); font-weight: 700; }
+.topic-item.active { 
+    color: var(--accent-blue); 
+    font-weight: 700; 
+    background: color-mix(in oklch, var(--accent-blue) 10%, transparent);
+    border-left: 2px solid var(--accent-blue);
+    padding-left: 0.4rem;
+    margin-left: -0.4rem;
+}
 .topic-item.active::before { opacity: 1; color: var(--accent-blue); }
 
 #render-area {

@@ -93,16 +93,26 @@ async function handleRoute() {
         return;
     }
     
+    // Completely reset tracking state for the new module
+    lastActiveTopicId = null;
+    contentArea.scrollTop = 0;
+    progressBar.style.width = '0%';
+
     const [subject, module] = hash.split('/');
     const path = `notes/${subject}/${module}.md`;
     
-    // Reset all topic lists
-    document.querySelectorAll('.topic-list').forEach(tl => tl.innerHTML = '');
-    
     // Update active state in sidebar
     document.querySelectorAll('#nav-content a').forEach(a => {
-        a.classList.toggle('active', a.getAttribute('href') === `#${hash}`);
+        const isActive = a.getAttribute('href') === `#${hash}`;
+        a.classList.toggle('active', isActive);
+        if (isActive) {
+            // Scroll sidebar to show active module
+            a.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
     });
+
+    // Reset all topic lists in sidebar
+    document.querySelectorAll('.topic-list').forEach(tl => tl.innerHTML = '');
 
     try {
         const res = await fetch(path);
@@ -154,15 +164,16 @@ async function handleRoute() {
             `).join('');
         }
         
+        // Final scroll reset to be absolutely sure
         contentArea.scrollTo({ top: 0, behavior: 'instant' });
         
-        // Wait for rendering to settle then update progress
-        setTimeout(() => {
+        // Initial progress update after content is injected
+        requestAnimationFrame(() => {
             updateProgress();
             renderArea.classList.remove('fade-in');
-            void renderArea.offsetWidth; // Trigger reflow
+            void renderArea.offsetWidth;
             renderArea.classList.add('fade-in');
-        }, 50);
+        });
 
     } catch (err) {
         renderArea.innerHTML = `<h1 style="color: var(--accent-red)">Error</h1><p>${err.message}</p>`;
