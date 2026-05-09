@@ -149,11 +149,13 @@ async function handleRoute() {
             throwOnError: false
         });
 
-        // Stage 7: Extract Topics for Sidebar
-        const topics = Array.from(renderArea.querySelectorAll('h2')).map((h, i) => {
-            h.id = `topic-${i}`;
-            return { id: h.id, text: h.innerText };
-        });
+        // Stage 7: Extract ONLY Numbered 'Master Topics' for Sidebar
+        const topics = Array.from(renderArea.querySelectorAll('h2'))
+            .filter(h => /^\d+\./.test(h.innerText.trim())) // Only headings starting with "1.", "2.", etc.
+            .map((h, i) => {
+                h.id = `master-topic-${i}`;
+                return { id: h.id, text: h.innerText };
+            });
 
         const activeTopicList = document.getElementById(`topics-${subject}-${module}`);
         if (activeTopicList) {
@@ -192,27 +194,32 @@ function updateProgress() {
         progressBar.style.width = '0%';
     }
 
-    // High-Frequency Topic Highlighting
-    const headings = Array.from(renderArea.querySelectorAll('h2'));
+    // Master Zone Logic: Find the active numbered topic
+    const masterHeadings = Array.from(renderArea.querySelectorAll('h2'))
+        .filter(h => h.id.startsWith('master-topic-'));
+    
     let activeTopicId = null;
     
-    // Use a small offset for click-to-scroll precision
-    const threshold = 80; 
+    // We consider a topic active if its heading has passed the 30% mark of the viewport
+    const readingThreshold = window.innerHeight * 0.3;
 
-    // Find the last heading that is above the threshold
-    for (let i = 0; i < headings.length; i++) {
-        const rect = headings[i].getBoundingClientRect();
-        if (rect.top <= threshold + 5) { // Small buffer for sub-pixel rendering
-            activeTopicId = headings[i].id;
+    for (let i = 0; i < masterHeadings.length; i++) {
+        const rect = masterHeadings[i].getBoundingClientRect();
+        if (rect.top <= readingThreshold) {
+            activeTopicId = masterHeadings[i].id;
         } else {
+            // As soon as we find a heading that is below our "active zone", 
+            // we know the PREVIOUS one is the one the user is currently in.
             break;
         }
     }
 
-    // Default to first if none found but we are in a module
-    if (!activeTopicId && headings.length > 0) activeTopicId = headings[0].id;
+    // Default to first topic if we haven't reached any threshold yet
+    if (!activeTopicId && masterHeadings.length > 0) activeTopicId = masterHeadings[0].id;
 
-    if (activeTopicId) {
+    if (activeTopicId && activeTopicId !== lastActiveTopicId) {
+        lastActiveTopicId = activeTopicId;
+        
         document.querySelectorAll('.topic-item').forEach(item => {
             const isMatched = item.getAttribute('data-id') === activeTopicId;
             const wasActive = item.classList.contains('active');
