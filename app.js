@@ -154,23 +154,29 @@ async function handleRoute() {
             `).join('');
         }
         
-        contentArea.scrollTo(0, 0);
-        updateProgress();
+        contentArea.scrollTo({ top: 0, behavior: 'instant' });
         
-        renderArea.classList.remove('fade-in');
-        void renderArea.offsetWidth; // Trigger reflow
-        renderArea.classList.add('fade-in');
+        // Wait for rendering to settle then update progress
+        setTimeout(() => {
+            updateProgress();
+            renderArea.classList.remove('fade-in');
+            void renderArea.offsetWidth; // Trigger reflow
+            renderArea.classList.add('fade-in');
+        }, 50);
 
     } catch (err) {
         renderArea.innerHTML = `<h1 style="color: var(--accent-red)">Error</h1><p>${err.message}</p>`;
     }
 }
 
+let lastActiveTopicId = null;
+
 function updateProgress() {
+    if (!contentArea) return;
+    
     const scroll = contentArea.scrollTop;
     const height = contentArea.scrollHeight - contentArea.clientHeight;
     
-    // Ensure progress bar updates correctly
     if (height > 0) {
         const progress = (scroll / height) * 100;
         progressBar.style.width = `${progress}%`;
@@ -178,28 +184,40 @@ function updateProgress() {
         progressBar.style.width = '0%';
     }
 
-    // Highlight active topic in sidebar
     const headings = Array.from(renderArea.querySelectorAll('h2'));
     let activeTopicId = null;
     
-    // Reverse find the first heading that is above the viewport top
-    for (let i = headings.length - 1; i >= 0; i--) {
-        const h = headings[i];
-        if (h.offsetTop - contentArea.offsetTop <= scroll + 100) {
-            activeTopicId = h.id;
+    // Find the current heading: the last one that hasn't passed the threshold
+    for (let i = 0; i < headings.length; i++) {
+        if (headings[i].offsetTop - contentArea.offsetTop <= scroll + 150) {
+            activeTopicId = headings[i].id;
+        } else {
             break;
         }
     }
 
-    if (activeTopicId) {
+    // Default to first heading if scrolled to very top
+    if (!activeTopicId && headings.length > 0) activeTopicId = headings[0].id;
+
+    if (activeTopicId && activeTopicId !== lastActiveTopicId) {
+        lastActiveTopicId = activeTopicId;
+        
         document.querySelectorAll('.topic-item').forEach(item => {
             const isMatched = item.getAttribute('data-id') === activeTopicId;
-            const wasActive = item.classList.contains('active');
             item.classList.toggle('active', isMatched);
             
-            if (isMatched && !wasActive) {
-                // Ensure the active topic item is visible in the sidebar
-                item.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            if (isMatched) {
+                // Scroll the sidebar itself, ensuring we don't jump the main content
+                const sidebarNav = document.getElementById('nav-content');
+                const itemTop = item.offsetTop;
+                const sidebarHeight = sidebarNav.clientHeight;
+                
+                if (itemTop < sidebarNav.scrollTop || itemTop > sidebarNav.scrollTop + sidebarHeight) {
+                    sidebarNav.scrollTo({
+                        top: itemTop - (sidebarHeight / 2),
+                        behavior: 'smooth'
+                    });
+                }
             }
         });
     }
