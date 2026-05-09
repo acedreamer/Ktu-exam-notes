@@ -56,6 +56,13 @@
 
 /* Base resets */
 * { margin: 0; padding: 0; box-sizing: border-box; }
+html, body { 
+    overflow-x: hidden; 
+    width: 100%; 
+    position: relative; 
+    margin: 0; 
+    padding: 0;
+}
 html { scroll-behavior: smooth; font-size: 16px; }
 body { 
     background: var(--bg-base); 
@@ -63,7 +70,6 @@ body {
     font-family: var(--font-body); 
     line-height: 1.6;
     height: 100vh;
-    overflow: hidden;
     display: flex;
     transition: background 300ms var(--ease-out), color 300ms var(--ease-out), border-color 300ms var(--ease-out);
 }
@@ -100,6 +106,7 @@ body {
     display: flex;
     flex-direction: column;
     overflow: hidden; /* Prevent body scroll bleed */
+    transition: transform 400ms var(--ease-out);
 }
 
 .sidebar-header { 
@@ -488,7 +495,7 @@ tr:hover td { background: color-mix(in oklch, var(--bg-elevated) 50%, transparen
     display: flex;
     flex-direction: column;
     gap: 4px;
-    z-index: 201;
+    z-index: 301;
 }
 
 #menu-toggle span {
@@ -496,12 +503,13 @@ tr:hover td { background: color-mix(in oklch, var(--bg-elevated) 50%, transparen
     width: 20px;
     height: 1.5px;
     background: var(--text-primary);
-    transition: var(--transition-base);
+    transition: transform 300ms var(--ease-out), opacity 300ms var(--ease-out);
 }
 
-#sidebar.open ~ #mobile-bar #menu-toggle span:nth-child(1) { transform: translateY(5.5px) rotate(45deg); }
-#sidebar.open ~ #mobile-bar #menu-toggle span:nth-child(2) { opacity: 0; }
-#sidebar.open ~ #mobile-bar #menu-toggle span:nth-child(3) { transform: translateY(-5.5px) rotate(-45deg); }
+/* Hamburger to X Morph */
+body.sidebar-open #menu-toggle span:nth-child(1) { transform: translateY(5.5px) rotate(45deg); }
+body.sidebar-open #menu-toggle span:nth-child(2) { opacity: 0; }
+body.sidebar-open #menu-toggle span:nth-child(3) { transform: translateY(-5.5px) rotate(-45deg); }
 
 /* Mobile Theme Slider */
 .theme-slider {
@@ -541,27 +549,37 @@ tr:hover td { background: color-mix(in oklch, var(--bg-elevated) 50%, transparen
 
 @media (max-width: 768px) {
     body { flex-direction: column; }
+    #search, #nav-content li a, .topic-item { font-size: 16px !important; }
+    
     #sidebar {
         position: fixed;
-        left: -100%;
+        left: 0;
+        top: 0;
+        transform: translateX(-100%);
         z-index: 300;
-        transition: left 400ms var(--ease-out);
         box-shadow: 10px 0 30px rgba(0,0,0,0.5);
+        height: 100vh;
     }
-    #sidebar.open { left: 0; }
+    body.sidebar-open #sidebar { transform: translateX(0); }
+    
     #sidebar-overlay {
-        display: none;
+        display: block;
         position: fixed;
         inset: 0;
         background: rgba(0,0,0,0.7);
         z-index: 250;
         backdrop-filter: blur(4px);
-        animation: fadeIn 200ms ease-out;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 300ms var(--ease-out);
     }
-    #sidebar-overlay.open { display: block; }
+    body.sidebar-open #sidebar-overlay {
+        opacity: 1;
+        pointer-events: auto;
+    }
+    
     #mobile-bar { display: flex; }
     #content { padding: 0 1rem 2rem 1rem; }
-    #sidebar { height: 100vh; top: 0; }
     
     #progress-container {
         position: fixed;

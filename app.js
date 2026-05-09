@@ -61,13 +61,11 @@ function setupEventListeners() {
 }
 
 function toggleSidebar() {
-    sidebar.classList.toggle('open');
-    overlay.classList.toggle('open');
+    document.body.classList.toggle('sidebar-open');
 }
 
 function closeSidebar() {
-    sidebar.classList.remove('open');
-    overlay.classList.remove('open');
+    document.body.classList.remove('sidebar-open');
 }
 
 function renderSidebar(manifest) {
