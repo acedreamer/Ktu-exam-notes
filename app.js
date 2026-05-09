@@ -94,8 +94,6 @@ async function handleRoute() {
     }
     
     // Completely reset tracking state for the new module
-    if (topicObserver) topicObserver.disconnect();
-    lastActiveTopicId = null;
     contentArea.scrollTop = 0;
     progressBar.style.width = '0%';
 
@@ -164,14 +162,12 @@ async function handleRoute() {
             `).join('');
         }
         
-        // Ensure scroll is at top before observing
+        // Ensure scroll is at top before sync
         contentArea.scrollTop = 0;
         
-        // Initialize observer after a short delay to allow DOM to settle
+        // Initial sync after content is injected and layout settled
         setTimeout(() => {
-            initTopicObserver();
-            updateProgress(); // Initial progress bar sync
-            
+            updateProgress();
             renderArea.classList.remove('fade-in');
             void renderArea.offsetWidth;
             renderArea.classList.add('fade-in');
@@ -182,63 +178,51 @@ async function handleRoute() {
     }
 }
 
-let lastActiveTopicId = null;
-let topicObserver = null;
-
-function initTopicObserver() {
-    if (topicObserver) topicObserver.disconnect();
-
-    const observerOptions = {
-        root: contentArea,
-        // Start from absolute top (0px) to catch headings immediately when clicked/scrolled
-        rootMargin: '0px 0px -85% 0px',
-        threshold: [0, 0.1]
-    };
-
-    topicObserver = new IntersectionObserver((entries) => {
-        // Only trigger on entries entering the top area
-        const activeEntry = entries.find(e => e.isIntersecting);
-        if (activeEntry) {
-            updateActiveTopicUI(activeEntry.target.id);
-        }
-    }, observerOptions);
-
-    renderArea.querySelectorAll('h2').forEach(h => topicObserver.observe(h));
-}
-
-function updateActiveTopicUI(activeTopicId) {
-    if (activeTopicId && activeTopicId !== lastActiveTopicId) {
-        lastActiveTopicId = activeTopicId;
-        
-        document.querySelectorAll('.topic-item').forEach(item => {
-            const isMatched = item.getAttribute('data-id') === activeTopicId;
-            item.classList.toggle('active', isMatched);
-            
-            if (isMatched) {
-                // Smoothly scroll the sidebar to keep active item in view
-                const sidebarNav = document.getElementById('nav-content');
-                const itemRect = item.getBoundingClientRect();
-                const navRect = sidebarNav.getBoundingClientRect();
-                
-                if (itemRect.top < navRect.top || itemRect.bottom > navRect.bottom) {
-                    item.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-                }
-            }
-        });
-    }
-}
-
 function updateProgress() {
     if (!contentArea || !renderArea) return;
     
     const scroll = contentArea.scrollTop;
     const height = contentArea.scrollHeight - contentArea.clientHeight;
     
+    // Update Progress Bar
     if (height > 0) {
         const progress = (scroll / height) * 100;
         progressBar.style.width = `${progress}%`;
     } else {
         progressBar.style.width = '0%';
+    }
+
+    // High-Frequency Topic Highlighting
+    const headings = Array.from(renderArea.querySelectorAll('h2'));
+    let activeTopicId = null;
+    
+    // Use a small offset for click-to-scroll precision
+    const threshold = 80; 
+
+    // Find the last heading that is above the threshold
+    for (let i = 0; i < headings.length; i++) {
+        const rect = headings[i].getBoundingClientRect();
+        if (rect.top <= threshold + 5) { // Small buffer for sub-pixel rendering
+            activeTopicId = headings[i].id;
+        } else {
+            break;
+        }
+    }
+
+    // Default to first if none found but we are in a module
+    if (!activeTopicId && headings.length > 0) activeTopicId = headings[0].id;
+
+    if (activeTopicId) {
+        document.querySelectorAll('.topic-item').forEach(item => {
+            const isMatched = item.getAttribute('data-id') === activeTopicId;
+            const wasActive = item.classList.contains('active');
+            item.classList.toggle('active', isMatched);
+            
+            if (isMatched && !wasActive) {
+                // Ensure the active topic item is visible in the sidebar
+                item.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }
+        });
     }
 }
 
