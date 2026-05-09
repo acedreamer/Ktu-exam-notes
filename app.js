@@ -94,6 +94,7 @@ async function handleRoute() {
     }
     
     // Completely reset tracking state for the new module
+    if (topicObserver) topicObserver.disconnect();
     lastActiveTopicId = null;
     contentArea.scrollTop = 0;
     progressBar.style.width = '0%';
@@ -106,7 +107,6 @@ async function handleRoute() {
         const isActive = a.getAttribute('href') === `#${hash}`;
         a.classList.toggle('active', isActive);
         if (isActive) {
-            // Scroll sidebar to show active module
             a.scrollIntoView({ behavior: 'smooth', block: 'center' });
         }
     });
@@ -164,17 +164,18 @@ async function handleRoute() {
             `).join('');
         }
         
-        // Final scroll reset to be absolutely sure
-        contentArea.scrollTo({ top: 0, behavior: 'instant' });
+        // Ensure scroll is at top before observing
+        contentArea.scrollTop = 0;
         
-        // Initial progress update after content is injected
-        requestAnimationFrame(() => {
-            updateProgress();
-            initTopicObserver(); // Initialize observer for the new headings
+        // Initialize observer after a short delay to allow DOM to settle
+        setTimeout(() => {
+            initTopicObserver();
+            updateProgress(); // Initial progress bar sync
+            
             renderArea.classList.remove('fade-in');
             void renderArea.offsetWidth;
             renderArea.classList.add('fade-in');
-        });
+        }, 100);
 
     } catch (err) {
         renderArea.innerHTML = `<h1 style="color: var(--accent-red)">Error</h1><p>${err.message}</p>`;
@@ -187,21 +188,20 @@ let topicObserver = null;
 function initTopicObserver() {
     if (topicObserver) topicObserver.disconnect();
 
-    topicObserver = new IntersectionObserver((entries) => {
-        // Find the entry that is intersecting and closest to the top
-        const visibleEntries = entries.filter(e => e.isIntersecting);
-        if (visibleEntries.length === 0) return;
-
-        // Sort by top position to find the one closest to the top of the viewport
-        visibleEntries.sort((a, b) => a.boundingClientRect.top - b.getBoundingClientRect().top);
-        
-        const activeTopicId = visibleEntries[0].target.id;
-        updateActiveTopicUI(activeTopicId);
-    }, {
+    const observerOptions = {
         root: contentArea,
-        rootMargin: '0px 0px -80% 0px', // Trigger when heading is in the top 20% of the area
-        threshold: 0
-    });
+        // Extremely narrow window at the top (between 10% and 20% of the height)
+        rootMargin: '-10% 0px -80% 0px',
+        threshold: [0, 1]
+    };
+
+    topicObserver = new IntersectionObserver((entries) => {
+        // Find entries that are entering the viewport from below or are already there
+        const activeEntry = entries.find(e => e.isIntersecting);
+        if (activeEntry) {
+            updateActiveTopicUI(activeEntry.target.id);
+        }
+    }, observerOptions);
 
     renderArea.querySelectorAll('h2').forEach(h => topicObserver.observe(h));
 }
