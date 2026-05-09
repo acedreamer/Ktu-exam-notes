@@ -183,7 +183,7 @@ async function handleRoute() {
 let lastActiveTopicId = null;
 
 function updateProgress() {
-    if (!contentArea) return;
+    if (!contentArea || !renderArea) return;
     
     const scroll = contentArea.scrollTop;
     const height = contentArea.scrollHeight - contentArea.clientHeight;
@@ -198,16 +198,20 @@ function updateProgress() {
     const headings = Array.from(renderArea.querySelectorAll('h2'));
     let activeTopicId = null;
     
-    // Find the current heading: the last one that hasn't passed the threshold
+    const containerRect = contentArea.getBoundingClientRect();
+
+    // Use getBoundingClientRect for precise viewport-relative calculation
     for (let i = 0; i < headings.length; i++) {
-        if (headings[i].offsetTop - contentArea.offsetTop <= scroll + 150) {
+        const rect = headings[i].getBoundingClientRect();
+        // If the heading's top is near or above the top of the content container
+        if (rect.top - containerRect.top <= 160) {
             activeTopicId = headings[i].id;
         } else {
             break;
         }
     }
 
-    // Default to first heading if scrolled to very top
+    // Default to first heading if at the very top
     if (!activeTopicId && headings.length > 0) activeTopicId = headings[0].id;
 
     if (activeTopicId && activeTopicId !== lastActiveTopicId) {
@@ -218,16 +222,13 @@ function updateProgress() {
             item.classList.toggle('active', isMatched);
             
             if (isMatched) {
-                // Scroll the sidebar itself, ensuring we don't jump the main content
+                // Smoothly scroll the sidebar to keep active item in view
                 const sidebarNav = document.getElementById('nav-content');
-                const itemTop = item.offsetTop;
-                const sidebarHeight = sidebarNav.clientHeight;
+                const itemRect = item.getBoundingClientRect();
+                const navRect = sidebarNav.getBoundingClientRect();
                 
-                if (itemTop < sidebarNav.scrollTop || itemTop > sidebarNav.scrollTop + sidebarHeight) {
-                    sidebarNav.scrollTo({
-                        top: itemTop - (sidebarHeight / 2),
-                        behavior: 'smooth'
-                    });
+                if (itemRect.top < navRect.top || itemRect.bottom > navRect.bottom) {
+                    item.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
                 }
             }
         });
