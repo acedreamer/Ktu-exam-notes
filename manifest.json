@@ -1,6 +1,47 @@
 {
   "subjects": [
     {
+      "id": "CD",
+      "label": "CD",
+      "modules": [
+        {
+          "id": "Module_1_Study_Guide",
+          "title": "Module 1 Study Guide",
+          "order": 99,
+          "path": "notes/CD/Module_1_Study_Guide.md",
+          "tags": []
+        },
+        {
+          "id": "Module_2_Study_Guide",
+          "title": "Module 2 Study Guide",
+          "order": 99,
+          "path": "notes/CD/Module_2_Study_Guide.md",
+          "tags": []
+        },
+        {
+          "id": "Module_3_Study_Guide",
+          "title": "Module 3 Study Guide",
+          "order": 99,
+          "path": "notes/CD/Module_3_Study_Guide.md",
+          "tags": []
+        },
+        {
+          "id": "Module_4_Study_Guide",
+          "title": "Module 4 Study Guide",
+          "order": 99,
+          "path": "notes/CD/Module_4_Study_Guide.md",
+          "tags": []
+        },
+        {
+          "id": "Module_5_Study_Guide",
+          "title": "Module 5 Study Guide",
+          "order": 99,
+          "path": "notes/CD/Module_5_Study_Guide.md",
+          "tags": []
+        }
+      ]
+    },
+    {
       "id": "IEFT",
       "label": "IEFT",
       "modules": [

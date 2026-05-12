@@ -70,7 +70,7 @@ function closeSidebar() {
 
 function renderSidebar(manifest) {
     navArea.innerHTML = manifest.subjects.map(sub => `
-        <details open>
+        <details id="details-${sub.id}">
             <summary>${sub.label}</summary>
             <ul>
                 ${sub.modules.map(mod => `
@@ -84,11 +84,31 @@ function renderSidebar(manifest) {
     `).join('');
 }
 
+function highlightActiveLink() {
+    const hash = window.location.hash;
+    document.querySelectorAll('#nav-content a').forEach(a => {
+        const isActive = a.getAttribute('href') === hash;
+        a.classList.toggle('active', isActive);
+        if (isActive) {
+            const details = a.closest('details');
+            if (details) details.open = true;
+            
+            // Only scroll into view if not in a search result
+            if (!document.querySelector('#nav-content').innerHTML.includes('Search Results')) {
+                a.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+        }
+    });
+}
+
 async function handleRoute() {
     const hash = window.location.hash.slice(1);
     if (!hash) {
         renderArea.innerHTML = '<h1 style="font-family: var(--font-heading)">Welcome</h1><p>Select a module from the sidebar to begin your revision.</p>';
         progressBar.style.width = '0%';
+        // Open the first subject by default
+        const firstDetails = document.querySelector('#nav-content details');
+        if (firstDetails) firstDetails.open = true;
         return;
     }
     
@@ -100,14 +120,7 @@ async function handleRoute() {
     const [subject, module] = hash.split('/');
     const path = `notes/${subject}/${module}.md`;
     
-    // Update active module state in sidebar
-    document.querySelectorAll('#nav-content a').forEach(a => {
-        const isActive = a.getAttribute('href') === `#${hash}`;
-        a.classList.toggle('active', isActive);
-        if (isActive) {
-            a.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        }
-    });
+    highlightActiveLink();
 
     // Clear all existing topic lists
     document.querySelectorAll('.topic-list').forEach(tl => tl.innerHTML = '');
@@ -350,7 +363,11 @@ async function buildIndex(manifest) {
 
 searchInput.addEventListener('input', (e) => {
     const term = e.target.value.toLowerCase();
-    if (!term) { renderSidebar(currentManifest); return; }
+    if (!term) { 
+        renderSidebar(currentManifest); 
+        highlightActiveLink();
+        return; 
+    }
     const results = searchIndex.filter(m => m.content.includes(term) || m.title.toLowerCase().includes(term));
     if (results.length > 0) {
         navArea.innerHTML = `<div style="padding: 0 1.5rem; font-family: var(--font-mono); font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase;">Search Results</div>` + results.map(mod => `<li><a href="#${mod.subjectId}/${mod.id}">${mod.title} <small style="display:block; opacity: 0.6">${mod.subjectLabel}</small></a></li>`).join('');

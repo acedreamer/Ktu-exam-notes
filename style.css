@@ -144,7 +144,10 @@ body {
     scrollbar-width: thin;
     scrollbar-color: var(--border) transparent;
 }
-#nav-content details { margin-bottom: 0.5rem; }
+#nav-content details { 
+    margin-bottom: 0.5rem; 
+    border-bottom: 1px solid var(--border);
+}
 #nav-content summary { 
     font-family: var(--font-mono); 
     font-size: var(--text-sm);
@@ -154,8 +157,20 @@ body {
     color: var(--text-secondary);
     font-weight: 700;
     list-style: none;
-    border-bottom: 1px dashed var(--border);
     transition: background-color var(--transition-fast), color var(--transition-fast);
+}
+#nav-content summary::-webkit-details-marker {
+    display: none;
+}
+#nav-content summary::before {
+    content: '▶';
+    display: inline-block;
+    margin-right: 0.5rem;
+    font-size: 0.8em;
+    transition: transform var(--transition-fast);
+}
+#nav-content details[open] summary::before {
+    transform: rotate(90deg);
 }
 #nav-content summary:hover { color: var(--text-primary); background: var(--bg-elevated); }
 #nav-content summary:active { background: var(--border); }
