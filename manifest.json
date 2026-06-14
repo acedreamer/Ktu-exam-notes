@@ -3,6 +3,7 @@
     {
       "id": "CD",
       "label": "CD",
+      "totalTopics": 28,
       "modules": [
         {
           "id": "Module_1_Study_Guide",
@@ -44,6 +45,7 @@
     {
       "id": "IEFT",
       "label": "IEFT",
+      "totalTopics": 28,
       "modules": [
         {
           "id": "Module_1_Notes",
