@@ -206,11 +206,11 @@ function renderHomePage(manifest) {
                 <div>
                     <span class="font-label-caps text-[10px] text-accent-blue font-semibold tracking-wider">${sub.id} COURSE</span>
                     <h4 class="font-headline-md text-2xl font-bold mt-sm text-primary group-hover:translate-x-1 transition-transform duration-300 ease-out">${courseName}</h4>
-                    <p class="text-sm text-secondary mt-sm leading-relaxed">${courseDesc}</p>
+                    <div class="text-sm text-secondary mt-sm leading-relaxed">${courseDesc}</div>
                 </div>
-                <p class="font-mono text-[9px] text-muted uppercase tracking-widest mt-lg font-normal opacity-80 select-none">
+                <div class="font-mono text-[9px] text-muted uppercase tracking-widest mt-lg font-normal opacity-80 select-none">
                     ${sub.totalTopics || 0} Topics
-                </p>
+                </div>
             </div>
         `;
     }).join('');
@@ -227,7 +227,7 @@ function renderHomePage(manifest) {
                     <span class="font-label-caps text-[9px] text-accent-amber font-semibold uppercase tracking-wider">${item.subject}</span>
                     <h5 class="font-headline-md text-md font-bold mt-sm text-primary">${item.title}</h5>
                 </div>
-                <p class="font-mono text-[8px] text-muted uppercase tracking-widest mt-md font-normal opacity-80 select-none">Continue Reading</p>
+                <div class="font-mono text-[8px] text-muted uppercase tracking-widest mt-md font-normal opacity-60 select-none">Continue Reading</div>
             </div>
         `).join('');
 
@@ -244,7 +244,7 @@ function renderHomePage(manifest) {
     return `
         <div class="space-y-xl">
             <section class="space-y-md border-b border-border pb-xl select-none">
-                <h2 class="font-display-branch text-5xl md:text-7xl text-primary font-bold tracking-tight">KTU EXAM ARCHIVE</h2>
+                <h1 class="font-display-branch text-5xl md:text-7xl text-primary font-bold tracking-tight">KTU EXAM ARCHIVE</h1>
                 <p class="font-body-lg text-lg text-secondary max-w-2xl leading-relaxed">
                     Access premium, structured revision notes, worked examples, and exam tips compiled specifically for KTU  engineering exams.
                 </p>
