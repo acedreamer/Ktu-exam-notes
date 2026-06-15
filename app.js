@@ -306,7 +306,7 @@ async function handleRoute() {
         recordVisit(subject, module, noteTitle);
         
         // Strip frontmatter
-        text = text.replace(/^---[\s\S]*?---\n/, '');
+        text = text.replace(/^---[\s\S]*?---\r?\n/, '');
 
         // Stage 1: Badges
         text = text.replace(/\[SURE SHOT\]/g, '<span class="badge badge-sure">★ SURE SHOT</span>');
@@ -533,7 +533,7 @@ async function buildIndex(manifest) {
                     ...mod, 
                     subjectLabel: sub.label, 
                     subjectId: sub.id, 
-                    content: text.toLowerCase().replace(/^---[\s\S]*?---\n/, '') 
+                    content: text.toLowerCase().replace(/^---[\s\S]*?---\r?\n/, '') 
                 });
             } catch (e) {}
         }
