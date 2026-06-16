@@ -208,7 +208,7 @@ function renderHomePage(manifest) {
                     <h4 class="font-headline-md text-2xl font-bold mt-sm text-primary group-hover:translate-x-1 transition-transform duration-300 ease-out">${courseName}</h4>
                     <div class="text-sm text-secondary mt-sm leading-relaxed">${courseDesc}</div>
                 </div>
-                <div class="font-mono text-[9px] text-muted uppercase tracking-widest mt-lg font-normal opacity-80 select-none">
+                <div class="font-mono text-[14px] text-muted  tracking-widest mt-lg font-normal opacity-80 select-none">
                     ${sub.totalTopics || 0} Topics
                 </div>
             </div>
@@ -227,7 +227,7 @@ function renderHomePage(manifest) {
                     <span class="font-label-caps text-[9px] text-accent-amber font-semibold uppercase tracking-wider">${item.subject}</span>
                     <h5 class="font-headline-md text-md font-bold mt-sm text-primary">${item.title}</h5>
                 </div>
-                <div class="font-mono text-[8px] text-muted uppercase tracking-widest mt-md font-normal opacity-60 select-none">Continue Reading</div>
+                <div class="font-mono text-[12px] text-muted  tracking-widest mt-md font-normal opacity-60 select-none">Continue Reading</div>
             </div>
         `).join('');
 
