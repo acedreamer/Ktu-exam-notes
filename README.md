@@ -15,11 +15,11 @@ The application is split into a **static build phase** and a **dynamic client-si
 
 ```mermaid
 graph TD
-    subgraph Build Time
+    subgraph "Build Time"
         A[Raw Markdown Notes] -->|build.mjs compiles catalog| B[manifest.json]
     end
 
-    subgraph Run Time (SPA)
+    subgraph "Run Time (SPA)"
         B -->|1. Fetch manifest| C[app.js SPA Core]
         D[User Navigates / Hash Change] -->|2. Trigger handleRoute| C
         C -->|3. Fetch MD note| E[Parse Frontmatter & Inject Badge Tags]
