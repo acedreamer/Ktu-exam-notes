@@ -14,7 +14,7 @@ let lastActiveTopicId = null;
 // Initialize App
 async function init() {
     try {
-        const res = await fetch('manifest.json');
+        const res = await fetch(`manifest.json?t=${Date.now()}`);
         currentManifest = await res.json();
         
         // Restore saved theme
@@ -289,7 +289,7 @@ async function handleRoute() {
     highlightActiveLink();
 
     try {
-        const res = await fetch(path);
+        const res = await fetch(`${path}?t=${Date.now()}`);
         if (!res.ok) throw new Error('Note not found');
         let text = await res.text();
         
