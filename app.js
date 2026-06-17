@@ -194,12 +194,8 @@ function getRecentlyViewed(manifest) {
 function renderHomePage(manifest) {
     // Generate actual subject catalog cards
     const subjectsGrid = manifest.subjects.map(sub => {
-        const courseName = sub.id === 'CD' 
-            ? 'Compiler Design (CST302)' 
-            : 'Industrial Economics & Foreign Trade (HUT300)';
-        const courseDesc = sub.id === 'CD'
-            ? 'Access structured notes on Lexical Analysis, Parsing, Syntax Directed Translation, and Code Generation.'
-            : 'Access detailed study notes on Microeconomics, Macroeconomics, Market Structures, and International Trade.';
+        const courseName = sub.label || sub.id;
+        const courseDesc = sub.description || `Access detailed study notes and exam preparation materials for ${sub.id}.`;
         return `
             <div onclick="window.location.hash = '#${sub.id}/${sub.modules[0].id}'" 
                  class="explore-card p-lg border border-border bg-surface cursor-pointer group flex flex-col justify-between h-full">
@@ -421,9 +417,13 @@ function updateProgress() {
 }
 
 function wrapSections() {
-    const headings = renderArea.querySelectorAll('h2, h3');
+    const headings = renderArea.querySelectorAll('h3');
     headings.forEach(h => {
-        const text = h.innerText.toLowerCase();
+        const rawText = h.innerText.trim();
+        if (!/^[A-E]\.\s+/i.test(rawText)) {
+            return;
+        }
+        const text = rawText.toLowerCase();
         let type = '';
         let icon = '';
         let label = '';
@@ -441,7 +441,7 @@ function wrapSections() {
             
             h.parentNode.insertBefore(card, h);
             let next = h;
-            while (next && (next === h || (next.tagName !== 'H2' && next.tagName !== 'H3'))) {
+            while (next && (next === h || (next.tagName !== 'H2' && !(next.tagName === 'H3' && /^[A-E]\.\s+/i.test(next.innerText.trim()))))) {
                 let current = next;
                 next = next.nextElementSibling;
                 card.appendChild(current);

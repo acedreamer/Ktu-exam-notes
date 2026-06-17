@@ -1,8 +1,52 @@
 {
   "subjects": [
     {
+      "id": "AAD",
+      "label": "Algorithm Analysis & Design (CST306)",
+      "description": "Access detailed study notes on Greedy Strategy, Control Abstraction, Algorithm Design, Optimization Techniques.",
+      "totalTopics": 24,
+      "modules": [
+        {
+          "id": "Module_1_Study_Guide",
+          "title": "Algorithm Analysis & Design (CST306) - Module 1 Study Guide",
+          "order": 1,
+          "path": "notes/AAD/Module_1_Study_Guide.md",
+          "tags": []
+        },
+        {
+          "id": "Module_2_Study_Guide",
+          "title": "Algorithm Analysis & Design (CST306) - Module 2 Study Guide",
+          "order": 2,
+          "path": "notes/AAD/Module_2_Study_Guide.md",
+          "tags": []
+        },
+        {
+          "id": "Module_3_Study_Guide",
+          "title": "Algorithm Analysis & Design (CST306) - Module 3 Study Guide",
+          "order": 3,
+          "path": "notes/AAD/Module_3_Study_Guide.md",
+          "tags": []
+        },
+        {
+          "id": "Module_4_Study_Guide",
+          "title": "Algorithm Analysis & Design (CST306) - Module 4 Study Guide",
+          "order": 4,
+          "path": "notes/AAD/Module_4_Study_Guide.md",
+          "tags": []
+        },
+        {
+          "id": "Module_5_Study_Guide",
+          "title": "Algorithm Analysis & Design (CST306) - Module 5 Study Guide",
+          "order": 5,
+          "path": "notes/AAD/Module_5_Study_Guide.md",
+          "tags": []
+        }
+      ]
+    },
+    {
       "id": "CD",
-      "label": "CD",
+      "label": "Compiler Design (CST302)",
+      "description": "Access structured notes on Lexical Analysis, Parsing, Syntax Directed Translation, and Code Generation.",
       "totalTopics": 28,
       "modules": [
         {
@@ -44,7 +88,8 @@
     },
     {
       "id": "IEFT",
-      "label": "IEFT",
+      "label": "Industrial Economics & Foreign Trade (HUT300)",
+      "description": "Access detailed study notes on Microeconomics, Macroeconomics, Market Structures, and International Trade.",
       "totalTopics": 28,
       "modules": [
         {
@@ -80,6 +125,49 @@
           "title": "International Trade & Foreign Economics",
           "order": 5,
           "path": "notes/IEFT/Module_5_Notes.md",
+          "tags": []
+        }
+      ]
+    },
+    {
+      "id": "PIP",
+      "label": "PIP",
+      "description": "Access detailed study notes on Pandas CSV Analytics, Numpy, data analysis, Matplotlib.",
+      "totalTopics": 15,
+      "modules": [
+        {
+          "id": "Module_1_Notes",
+          "title": "Basics, Selection Structures, and Iteration",
+          "order": 1,
+          "path": "notes/PIP/Module_1_Notes.md",
+          "tags": []
+        },
+        {
+          "id": "Module_2_Notes",
+          "title": "Functions, Strings, and recursion",
+          "order": 2,
+          "path": "notes/PIP/Module_2_Notes.md",
+          "tags": []
+        },
+        {
+          "id": "Module_3_Notes",
+          "title": "Lists, Tuples, Dictionaries, and files",
+          "order": 3,
+          "path": "notes/PIP/Module_3_Notes.md",
+          "tags": []
+        },
+        {
+          "id": "Module_4_Notes",
+          "title": "Classes and Objects",
+          "order": 4,
+          "path": "notes/PIP/Module_4_Notes.md",
+          "tags": []
+        },
+        {
+          "id": "Module_5_Notes",
+          "title": "Scientific Computing (Numpy, Pandas, Matplotlib)",
+          "order": 5,
+          "path": "notes/PIP/Module_5_Notes.md",
           "tags": []
         }
       ]
